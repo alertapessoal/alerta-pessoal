@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 const API_URL =
   process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
@@ -8,7 +8,7 @@ export const TOKEN_KEY = 'token';
 export class ApiError extends Error {}
 
 async function obterToken() {
-  return AsyncStorage.getItem(TOKEN_KEY);
+  return SecureStore.getItemAsync(TOKEN_KEY);
 }
 
 async function chamarApi(
@@ -60,16 +60,16 @@ export const api = {
 };
 
 export async function salvarSessao(token: string, usuario: any) {
-  await AsyncStorage.setItem(TOKEN_KEY, token);
-  await AsyncStorage.setItem('usuarioLogado', JSON.stringify(usuario));
+  await SecureStore.setItemAsync(TOKEN_KEY, token);
+  await SecureStore.setItemAsync('usuarioLogado', JSON.stringify(usuario));
 }
 
 export async function limparSessao() {
-  await AsyncStorage.removeItem(TOKEN_KEY);
-  await AsyncStorage.removeItem('usuarioLogado');
+  await SecureStore.deleteItemAsync(TOKEN_KEY);
+  await SecureStore.deleteItemAsync('usuarioLogado');
 }
 
 export async function obterUsuarioLogado() {
-  const dados = await AsyncStorage.getItem('usuarioLogado');
+  const dados = await SecureStore.getItemAsync('usuarioLogado');
   return dados ? JSON.parse(dados) : null;
 }

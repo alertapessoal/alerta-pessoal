@@ -1,3 +1,4 @@
+﻿import { logger } from '../lib/logger';
 import * as Clipboard from 'expo-clipboard';
 import { useEffect, useState } from 'react';
 import {
@@ -247,12 +248,12 @@ async function registrarAuditoria(
       })
       .select();
 
-  console.log(
+  logger.log(
     'AUDITORIA DATA:',
     data
   );
 
-  console.log(
+  logger.log(
     'AUDITORIA ERROR:',
     error
   );

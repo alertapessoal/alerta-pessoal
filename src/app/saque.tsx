@@ -1,3 +1,4 @@
+﻿import { logger } from '../lib/logger';
 import {
   Alert,
   ScrollView,
@@ -10,194 +11,89 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 
 export default function SaqueScreen() {
 
-  const [saldoDisponivel, setSaldoDisponivel] =
-    useState(0);
-
-const [saldoBloqueado, setSaldoBloqueado] =
-  useState(0);
-
-  const [valorSaque, setValorSaque] =
-    useState('');
-
-  const [chavePix, setChavePix] =
-    useState('');
-
-  const [cpfPix, setCpfPix] =
-    useState('');
-
-  const [usuarioId, setUsuarioId] =
-    useState('');
+  const [saldoDisponivel, setSaldoDisponivel] = useState(0);
+  const [saldoBloqueado, setSaldoBloqueado] = useState(0);
+  const [valorSaque, setValorSaque] = useState('');
+  const [chavePix, setChavePix] = useState('');
+  const [cpfPix, setCpfPix] = useState('');
+  const [carregando, setCarregando] = useState(false);
 
   useEffect(() => {
     carregarDados();
   }, []);
 
   async function carregarDados() {
-
     try {
+      const data = await api.get('/afiliado/me');
 
-      const usuarioStorage =
-        await AsyncStorage.getItem(
-          'usuarioLogado'
-        );
-
-      if (!usuarioStorage) return;
-
-      const usuario =
-        JSON.parse(usuarioStorage);
-
-      setUsuarioId(usuario.id);
-
-      const { data } =
-        await supabase
-          .from('afiliados')
-          .select('*')
-          .eq(
-            'usuario_id',
-            usuario.id
-          )
-          .single();
-
-      if (data) {
-
-  setSaldoDisponivel(
-    Number(
-      data.saldo_disponivel || 0
-    )
-  );
-
-  setSaldoBloqueado(
-    Number(
-      data.saldo_bloqueado || 0
-    )
-  );
-}
-
+      if (data.afiliado) {
+        setSaldoDisponivel(Number(data.afiliado.saldo_disponivel || 0));
+        setSaldoBloqueado(Number(data.afiliado.saldo_bloqueado || 0));
+      }
     } catch (erro) {
-      console.log(erro);
+      logger.log(erro);
     }
-  };
+  }
 
-const solicitarSaque = async () => {
-
-  try {
-
-    if (saldoDisponivel < 100) {
-
-      Alert.alert(
-        'Saldo insuficiente',
-        'Você precisa acumular pelo menos R$ 100,00 para solicitar saque.'
-      );
-
-      return;
-    }
-      
-      const valor =
-        Number(
-          valorSaque.replace(',', '.')
+  const solicitarSaque = async () => {
+    try {
+      if (saldoDisponivel < 100) {
+        Alert.alert(
+          'Saldo insuficiente',
+          'Você precisa acumular pelo menos R$ 100,00 para solicitar saque.'
         );
+        return;
+      }
 
-if (!valor) {
+      const valor = Number(valorSaque.replace(',', '.'));
 
-  Alert.alert(
-    'Erro',
-    'Informe o valor do saque.'
-  );
+      if (!valor) {
+        Alert.alert('Erro', 'Informe o valor do saque.');
+        return;
+      }
 
-  return;
-}
-
-   if (valor < 100) {
-
-  Alert.alert(
-    'Erro',
-    'Valor mínimo para saque é R$ 100,00'
-  );
-
-  return;
-}
+      if (valor < 100) {
+        Alert.alert('Erro', 'Valor mínimo para saque é R$ 100,00');
+        return;
+      }
 
       if (valor > saldoDisponivel) {
-
-        Alert.alert(
-          'Erro',
-          'Saldo insuficiente'
-        );
-
+        Alert.alert('Erro', 'Saldo insuficiente');
         return;
       }
 
       if (!chavePix || !cpfPix) {
-
-  Alert.alert(
-    'Erro',
-    'Informe a chave PIX e o CPF do PIX.'
-  );
-
-  return;
-}
-
-      const { error } =
-        await supabase
-          .from('saques')
-          .insert([
-            {
-              usuario_id: usuarioId,
-              valor,
-              chave_pix: chavePix,
-              cpf_pix: cpfPix,
-              status: 'pendente',
-              data_solicitacao:
-                new Date().toISOString(),
-            },
-          ]);
-
-      if (error) {
-
-        Alert.alert(
-          'Erro',
-          error.message
-        );
-
+        Alert.alert('Erro', 'Informe a chave PIX e o CPF do PIX.');
         return;
       }
 
-await supabase
-  .from('afiliados')
-  .update({
-    saldo_disponivel:
-      saldoDisponivel - valor,
-  })
-  .eq(
-    'usuario_id',
-    usuarioId
-  );
+      setCarregando(true);
 
-      Alert.alert(
-        'Sucesso',
-        'Saque solicitado com sucesso.'
-      );
+      await api.post('/saque/solicitar', {
+        valor,
+        chavePix,
+        cpfPix,
+      });
+
+      Alert.alert('Sucesso', 'Saque solicitado com sucesso.');
 
       setValorSaque('');
       setChavePix('');
       setCpfPix('');
 
-      carregarDados();
+      await carregarDados();
 
     } catch (erro: any) {
-
-      Alert.alert(
-        'Erro',
-        erro.message
-      );
+      Alert.alert('Erro', erro?.message || 'Erro inesperado.');
+    } finally {
+      setCarregando(false);
     }
   };
 
@@ -206,23 +102,15 @@ await supabase
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons
-            name="arrow-back"
-            size={32}
-            color="#FFF"
-          />
+          <Ionicons name="arrow-back" size={32} color="#FFF" />
         </TouchableOpacity>
 
-        <Text style={styles.titulo}>
-          Solicitar saque
-        </Text>
+        <Text style={styles.titulo}>Solicitar saque</Text>
 
         <View style={{ width: 32 }} />
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView showsVerticalScrollIndicator={false}>
 
         <View style={styles.saldosRow}>
 
@@ -230,7 +118,6 @@ await supabase
             <Text style={styles.cardTitulo}>
               Saldo disponível para saque
             </Text>
-
             <Text style={styles.valorVerde}>
               R$ {saldoDisponivel.toFixed(2)}
             </Text>
@@ -240,19 +127,16 @@ await supabase
             <Text style={styles.cardTitulo}>
               Saldo bloqueado aguardando liberação
             </Text>
-
             <Text style={styles.valorAzul}>
-  R$ {saldoBloqueado.toFixed(2)}
-</Text>
+              R$ {saldoBloqueado.toFixed(2)}
+            </Text>
           </View>
 
         </View>
 
         <View style={styles.card}>
 
-          <Text style={styles.cardTitulo}>
-            Valor do saque
-          </Text>
+          <Text style={styles.cardTitulo}>Valor do saque</Text>
 
           <Text style={styles.disponivel}>
             Disponível para saque:
@@ -261,77 +145,70 @@ await supabase
             </Text>
           </Text>
 
-         <TextInput
-  style={styles.input}
-  placeholder="R$ 0,00"
-  placeholderTextColor="#AAA"
-  keyboardType="numeric"
-  value={valorSaque}
-  onChangeText={setValorSaque}
-/>
+          <TextInput
+            style={styles.input}
+            placeholder="R$ 0,00"
+            placeholderTextColor="#AAA"
+            keyboardType="numeric"
+            value={valorSaque}
+            onChangeText={setValorSaque}
+          />
 
           <View style={styles.limites}>
+            <Text style={styles.textoLimite}>Mínimo: R$ 100,00</Text>
             <Text style={styles.textoLimite}>
-              Mínimo: R$ 100,00
+              Máximo: R$ {saldoDisponivel.toFixed(2)}
             </Text>
-
-            <Text style={styles.textoLimite}>
-  Máximo: R$ {saldoDisponivel.toFixed(2)}
-</Text>
           </View>
 
         </View>
 
         <View style={styles.card}>
 
-          <Text style={styles.cardTitulo}>
-            Chave PIX cadastrada
+          <Text style={styles.cardTitulo}>Chave PIX cadastrada</Text>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Chave PIX (digitar)"
+            placeholderTextColor="#85cc7b"
+            value={chavePix}
+            onChangeText={setChavePix}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="CPF do PIX (digitar)"
+            placeholderTextColor="#4e99a8"
+            value={cpfPix}
+            onChangeText={setCpfPix}
+          />
+
+          <Text style={styles.avisoPix}>
+            ⚠️ Por segurança, somente serão aceitas chaves PIX de titularidade do mesmo CPF cadastrado na conta. Solicitações com dados divergentes poderão ser recusadas.
           </Text>
-
-         <TextInput
-  style={styles.input}
-  placeholder="Chave PIX (digitar)"
-  placeholderTextColor="#85cc7b"
-  value={chavePix}
-  onChangeText={setChavePix}
-/>
-
-<TextInput
-  style={styles.input}
-  placeholder="CPF do PIX (digitar)"
-  placeholderTextColor="#4e99a8"
-  value={cpfPix}
-  onChangeText={setCpfPix}
-/>
-
-<Text style={styles.avisoPix}>
-  ⚠️ Por segurança, somente serão aceitas chaves PIX de titularidade do mesmo CPF cadastrado na conta. Solicitações com dados divergentes poderão ser recusadas.
-</Text>
 
         </View>
 
         <View style={styles.infoBox}>
-
           <Ionicons
             name="information-circle-outline"
             size={28}
             color="#49A6FF"
           />
-
           <Text style={styles.infoTexto}>
             O valor solicitado será transferido para sua chave PIX em até 2 dias úteis após a aprovação.
             {'\n\n'}
             Lembre-se: o saldo bloqueado será liberado após 30 dias da confirmação do pagamento pelo indicado.
           </Text>
-
         </View>
 
         <TouchableOpacity
-  style={styles.botao}
-  onPress={solicitarSaque}
->
+          style={[styles.botao, carregando && { opacity: 0.6 }]}
+          onPress={solicitarSaque}
+          disabled={carregando}
+        >
           <Text style={styles.botaoTexto}>
-            SOLICITAR SAQUE
+            {carregando ? 'AGUARDE...' : 'SOLICITAR SAQUE'}
           </Text>
         </TouchableOpacity>
 
@@ -435,21 +312,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 
-  pixRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  pix: {
-    color: '#FFF',
-    fontSize: 15,
-  },
-
-  alterar: {
+  avisoPix: {
     color: '#F5B800',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 13,
+    lineHeight: 20,
+    marginTop: 5,
   },
 
   infoBox: {
@@ -483,11 +350,5 @@ const styles = StyleSheet.create({
     color: '#031B4E',
   },
 
-  avisoPix: {
-  color: '#F5B800',
-  fontSize: 13,
-  lineHeight: 20,
-  marginTop: 5,
-},
-
 });
+

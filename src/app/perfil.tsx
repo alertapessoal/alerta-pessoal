@@ -1,8 +1,10 @@
+﻿import { logger } from '../lib/logger';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -31,7 +33,7 @@ export default function PerfilScreen() {
         setUsuario(JSON.parse(dados));
       }
     } catch (error) {
-      console.log(error);
+      logger.log(error);
     }
   };
 
@@ -41,7 +43,7 @@ export default function PerfilScreen() {
 
       router.replace('/login');
     } catch (error) {
-      console.log(error);
+      logger.log(error);
     }
   };
 
@@ -167,7 +169,7 @@ export default function PerfilScreen() {
             icon="document-text-outline"
             texto="Termos de uso"
             onPress={() =>
-              router.push('/termos')
+              Linking.openURL('https://alertapessoal.com.br/termos-de-uso')
             }
           />
 
@@ -175,7 +177,7 @@ export default function PerfilScreen() {
             icon="folder-open-outline"
             texto="Política de Privacidade"
             onPress={() =>
-              router.push('/privacidade')
+              Linking.openURL('https://alertapessoal.com.br/politica-de-privacidade')
             }
           />
 
@@ -234,8 +236,6 @@ function MenuItem({
       </View>
 
       <View style={styles.rightSide}>
-
-
 
         <Ionicons
           name="chevron-forward"
@@ -352,3 +352,4 @@ const styles = StyleSheet.create({
     marginLeft: 15,
   },
 });
+

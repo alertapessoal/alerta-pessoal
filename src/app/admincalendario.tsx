@@ -1,3 +1,4 @@
+﻿import { logger } from '../lib/logger';
 import {
     ScrollView,
     StyleSheet,
@@ -89,7 +90,7 @@ export default function AdminCalendarioScreen() {
       );
 
     } catch (erro) {
-      console.log(erro);
+      logger.log(erro);
     }
   }
 

@@ -1,3 +1,4 @@
+﻿import { logger } from './logger';
 import { supabase } from '../lib/supabase';
 
 const ADMIN_ID =
@@ -32,9 +33,10 @@ await supabase
 
 
 if (error) {
-console.log(
+logger.log(
 'Erro alerta admin:',
 error
 );
 }
 }
+

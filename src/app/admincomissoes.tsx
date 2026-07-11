@@ -1,3 +1,4 @@
+﻿import { logger } from '../lib/logger';
 import {
     ScrollView,
     StyleSheet,
@@ -42,7 +43,7 @@ export default function AdminComissoesScreen() {
           );
 
       if (error) {
-        console.log(error);
+        logger.log(error);
         return;
       }
 
@@ -150,7 +151,7 @@ export default function AdminComissoesScreen() {
 
     } catch (erro) {
 
-      console.log(
+      logger.log(
         erro
       );
     }

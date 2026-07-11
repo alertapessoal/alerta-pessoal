@@ -1,3 +1,4 @@
+﻿import { logger } from '../lib/logger';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -39,7 +40,7 @@ export default function AlertasScreen() {
 
     } catch (erro) {
 
-      console.log(erro);
+      logger.log(erro);
 
     } finally {
 
@@ -69,7 +70,7 @@ export default function AlertasScreen() {
 
     } catch (erro) {
 
-      console.log(erro);
+      logger.log(erro);
 
     } finally {
 
@@ -243,3 +244,4 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 });
+

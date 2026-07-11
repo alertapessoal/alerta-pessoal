@@ -1,3 +1,4 @@
+﻿import { logger } from '../lib/logger';
 import {
     ScrollView,
     StyleSheet,
@@ -172,7 +173,7 @@ Admin: ${registro.admin_nome}`,
 
     } catch (erro) {
 
-      console.log(
+      logger.log(
         erro
       );
     }

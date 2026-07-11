@@ -1,3 +1,4 @@
+﻿import { logger } from '../lib/logger';
 import {
   Feather,
   Ionicons,
@@ -24,7 +25,7 @@ export default function PrincipalScreen() {
     useState('Carregando...');
 
   const [frequencia, setFrequencia] =
-    useState('24 horas');
+    useState('Carregando...');
 
   const [notificacoes, setNotificacoes] =
     useState(0);
@@ -68,7 +69,7 @@ export default function PrincipalScreen() {
 
     } catch (erro) {
 
-      console.log(
+      logger.log(
         erro
       );
 
@@ -362,3 +363,4 @@ const styles = StyleSheet.create({
 
 
 });
+

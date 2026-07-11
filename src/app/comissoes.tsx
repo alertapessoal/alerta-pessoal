@@ -1,11 +1,12 @@
+﻿import { logger } from '../lib/logger';
 import {
+    SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -23,13 +24,10 @@ export default function ComissoesScreen() {
 
   async function carregarComissoes() {
     try {
-
       const data = await api.get('/comissao/minhas');
-
       setComissoes(data || []);
-
     } catch (erro) {
-      console.log(erro);
+      logger.log(erro);
     }
   }
 
@@ -77,8 +75,7 @@ export default function ComissoesScreen() {
           (comissao) => {
 
             const bloqueado =
-              comissao.status ===
-              'bloqueado';
+              comissao.status === 'bloqueado';
 
             return (
               <View
@@ -87,25 +84,15 @@ export default function ComissoesScreen() {
               >
 
                 <Text style={styles.valor}>
-                  R$ {Number(
-                    comissao.valor
-                  ).toFixed(2)}
+                  R$ {Number(comissao.valor).toFixed(2)}
                 </Text>
 
                 <Text style={styles.indicado}>
-                  Indicação:
-                  {' '}
-                  {comissao.primeiroNome}
+                  Indicação: {comissao.primeiroNome || 'Usuário'}
                 </Text>
 
-                <Text
-                  style={
-                    styles.percentual
-                  }
-                >
-                  Comissão {Number(
-                    comissao.percentual
-                  )}%
+                <Text style={styles.percentual}>
+                  Comissão {Number(comissao.percentual)}%
                 </Text>
 
                 <View
@@ -115,27 +102,14 @@ export default function ComissoesScreen() {
                       : styles.statusLiberado
                   }
                 >
-                  <Text
-                    style={
-                      styles.statusTexto
-                    }
-                  >
+                  <Text style={styles.statusTexto}>
                     {comissao.status.toUpperCase()}
                   </Text>
                 </View>
 
-                <Text
-                  style={styles.data}
-                >
-                  {bloqueado
-                    ? 'Liberação: '
-                    : 'Liberado em: '}
-
-                  {new Date(
-                    comissao.data_liberacao
-                  ).toLocaleDateString(
-                    'pt-BR'
-                  )}
+                <Text style={styles.data}>
+                  {bloqueado ? 'Liberação: ' : 'Liberado em: '}
+                  {new Date(comissao.data_liberacao).toLocaleDateString('pt-BR')}
                 </Text>
 
               </View>
@@ -228,3 +202,4 @@ const styles = StyleSheet.create({
   },
 
 });
+

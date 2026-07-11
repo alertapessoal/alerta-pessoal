@@ -1,3 +1,4 @@
+﻿import { logger } from '../lib/logger';
 import {
     ScrollView,
     StyleSheet,
@@ -99,7 +100,7 @@ export default function AdminFinanceiroScreen() {
       );
 
     } catch (erro) {
-      console.log(erro);
+      logger.log(erro);
     }
   }
 

@@ -1,3 +1,4 @@
+﻿import { logger } from '../lib/logger';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -26,7 +27,7 @@ export default function HomeScreen() {
         router.replace('/principal');
       }
     } catch (error) {
-      console.log(error);
+      logger.log(error);
     }
   };
 
@@ -139,3 +140,4 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 });
+

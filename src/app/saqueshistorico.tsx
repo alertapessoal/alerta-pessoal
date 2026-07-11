@@ -1,63 +1,33 @@
+﻿import { logger } from '../lib/logger';
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 
-import { supabase } from '../lib/supabase';
+import { api } from '../lib/api';
 
 export default function SaquesHistoricoScreen() {
 
-  const [saques, setSaques] =
-    useState<any[]>([]);
+  const [saques, setSaques] = useState<any[]>([]);
 
   useEffect(() => {
     carregarSaques();
   }, []);
 
   async function carregarSaques() {
-
     try {
-
-      const usuarioStorage =
-        await AsyncStorage.getItem(
-          'usuarioLogado'
-        );
-
-      if (!usuarioStorage) return;
-
-      const usuario =
-        JSON.parse(usuarioStorage);
-
-      const { data } =
-        await supabase
-          .from('saques')
-          .select('*')
-          .eq(
-            'usuario_id',
-            usuario.id
-          )
-          .order(
-            'data_solicitacao',
-            {
-              ascending: false,
-            }
-          );
-
-      if (data) {
-        setSaques(data);
-      }
-
+      const data = await api.get('/saque/historico');
+      setSaques(data || []);
     } catch (erro) {
-      console.log(erro);
+      logger.log(erro);
     }
   }
 
@@ -66,134 +36,76 @@ export default function SaquesHistoricoScreen() {
 
       <View style={styles.header}>
 
-        <TouchableOpacity
-          onPress={() => router.back()}
-        >
-          <Ionicons
-            name="arrow-back"
-            size={32}
-            color="#FFF"
-          />
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={32} color="#FFF" />
         </TouchableOpacity>
 
-        <Text style={styles.titulo}>
-          Histórico de Saques
-        </Text>
+        <Text style={styles.titulo}>Histórico de Saques</Text>
 
         <View style={{ width: 32 }} />
 
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView showsVerticalScrollIndicator={false}>
 
         {saques.length === 0 && (
-
           <View style={styles.card}>
             <Text style={styles.semDados}>
               Nenhum saque encontrado.
             </Text>
           </View>
-
         )}
 
         {saques.map((saque) => (
-
           <View
             key={saque.id}
             style={[
               styles.card,
-
-              saque.status ===
-              'aprovado'
+              saque.status === 'aprovado'
                 ? styles.cardAprovado
-
-                : saque.status ===
-                  'recusado'
-
+                : saque.status === 'recusado'
                 ? styles.cardRecusado
-
                 : styles.cardPendente,
             ]}
           >
 
             <Text style={styles.valor}>
-              R$ {Number(
-                saque.valor
-              ).toFixed(2)}
+              R$ {Number(saque.valor).toFixed(2)}
             </Text>
 
-            <Text style={styles.label}>
-              Data:
-            </Text>
-
+            <Text style={styles.label}>Data:</Text>
             <Text style={styles.data}>
-              {new Date(
-                saque.data_solicitacao
-              ).toLocaleDateString(
-                'pt-BR'
-              )}
+              {new Date(saque.data_solicitacao).toLocaleDateString('pt-BR')}
             </Text>
 
-            <Text style={styles.label}>
-              Chave PIX:
-            </Text>
+            <Text style={styles.label}>Chave PIX:</Text>
+            <Text style={styles.data}>{saque.chave_pix}</Text>
 
-            <Text style={styles.data}>
-              {saque.chave_pix}
-            </Text>
-
-            <Text style={styles.label}>
-              Status:
-            </Text>
-
+            <Text style={styles.label}>Status:</Text>
             <View
               style={
-                saque.status ===
-                'aprovado'
+                saque.status === 'aprovado'
                   ? styles.pago
-
-                  : saque.status ===
-                    'recusado'
-
+                  : saque.status === 'recusado'
                   ? styles.recusado
-
                   : styles.pendente
               }
             >
-              <Text
-                style={styles.statusTexto}
-              >
+              <Text style={styles.statusTexto}>
                 {saque.status.toUpperCase()}
               </Text>
             </View>
 
-            {saque.status ===
-              'aprovado' &&
-              saque.data_pagamento && (
-
+            {saque.status === 'aprovado' && saque.data_pagamento && (
               <>
-                <Text
-                  style={styles.label}
-                >
-                  Pago em:
-                </Text>
-
-                <Text
-                  style={styles.data}
-                >
-                  {new Date(
-                    saque.data_pagamento
-                  ).toLocaleDateString(
-                    'pt-BR'
-                  )}
+                <Text style={styles.label}>Pago em:</Text>
+                <Text style={styles.data}>
+                  {new Date(saque.data_pagamento).toLocaleDateString('pt-BR')}
                 </Text>
               </>
             )}
 
           </View>
-
         ))}
 
       </ScrollView>
@@ -212,8 +124,7 @@ const styles = StyleSheet.create({
 
   header: {
     flexDirection: 'row',
-    justifyContent:
-      'space-between',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 10,
     marginBottom: 20,
@@ -305,3 +216,4 @@ const styles = StyleSheet.create({
   },
 
 });
+

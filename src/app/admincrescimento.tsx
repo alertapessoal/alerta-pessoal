@@ -1,3 +1,4 @@
+﻿import { logger } from '../lib/logger';
 import {
     ScrollView,
     StyleSheet,
@@ -118,7 +119,7 @@ export default function AdminCrescimentoScreen() {
 
     } catch (erro) {
 
-      console.log(
+      logger.log(
         erro
       );
     }

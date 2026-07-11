@@ -1,9 +1,12 @@
+﻿import { logger } from '../lib/logger';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,7 +33,7 @@ export default function HistoricoScreen() {
 
     } catch (erro) {
 
-      console.log(erro);
+      logger.log(erro);
 
     }
 
@@ -40,6 +43,14 @@ export default function HistoricoScreen() {
     <SafeAreaView style={styles.container}>
 
       <View style={styles.header}>
+
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons
+            name="arrow-back"
+            size={32}
+            color="#FFF"
+          />
+        </TouchableOpacity>
 
         <Text style={styles.titulo}>
           Histórico
@@ -172,9 +183,10 @@ const styles = StyleSheet.create({
 
   header: {
     flexDirection: 'row',
-    justifyContent:
-      'space-between',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 6,
+    marginBottom: 5,
   },
 
   titulo: {
@@ -188,6 +200,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 20,
     fontSize: 16,
+    paddingHorizontal: 6,
   },
 
   card: {
@@ -243,3 +256,4 @@ const styles = StyleSheet.create({
   },
 
 });
+

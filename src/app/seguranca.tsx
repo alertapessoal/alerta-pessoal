@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+    Alert,
     ScrollView,
     StyleSheet,
     Switch,
@@ -12,11 +13,73 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { api } from '../lib/api';
 
 export default function SegurancaScreen() {
-  const [biometria, setBiometria] = useState(true);
-  const [duasEtapas, setDuasEtapas] = useState(true);
-  const [encerrarSessoes, setEncerrarSessoes] = useState(true);
+  const [senhaAtual, setSenhaAtual] = useState('');
+  const [novaSenha, setNovaSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [salvando, setSalvando] = useState(false);
+
+  const [biometria, setBiometria] = useState(false);
+  const [duasEtapas, setDuasEtapas] = useState(false);
+  const [encerrarSessoes, setEncerrarSessoes] = useState(false);
+
+  async function atualizarSenha() {
+    if (!senhaAtual || !novaSenha || !confirmarSenha) {
+      Alert.alert('Atenção', 'Preencha todos os campos de senha.');
+      return;
+    }
+
+    if (novaSenha !== confirmarSenha) {
+      Alert.alert('Erro', 'A nova senha e a confirmação não coincidem.');
+      return;
+    }
+
+    if (novaSenha.length < 8) {
+      Alert.alert('Erro', 'A nova senha deve ter pelo menos 8 caracteres.');
+      return;
+    }
+
+    if (!/[0-9]/.test(novaSenha)) {
+      Alert.alert('Erro', 'A nova senha deve conter pelo menos 1 número.');
+      return;
+    }
+
+    if (!/[A-Z]/.test(novaSenha)) {
+      Alert.alert('Erro', 'A nova senha deve conter pelo menos 1 letra maiúscula.');
+      return;
+    }
+
+    if (!/[^A-Za-z0-9]/.test(novaSenha)) {
+      Alert.alert('Erro', 'A nova senha deve conter pelo menos 1 caractere especial.');
+      return;
+    }
+
+    try {
+      setSalvando(true);
+
+      await api.post('/usuario/alterar-senha', {
+        senhaAtual,
+        novaSenha,
+      });
+
+      setSenhaAtual('');
+      setNovaSenha('');
+      setConfirmarSenha('');
+
+      Alert.alert('Sucesso', 'Senha atualizada com sucesso!');
+
+    } catch (erro: any) {
+      const mensagem =
+        erro?.response?.data?.erro ||
+        erro?.message ||
+        'Erro ao atualizar senha. Tente novamente.';
+      Alert.alert('Erro', mensagem);
+    } finally {
+      setSalvando(false);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -61,6 +124,8 @@ export default function SegurancaScreen() {
             placeholder="Digite sua senha atual"
             placeholderTextColor="#7C8BA3"
             secureTextEntry
+            value={senhaAtual}
+            onChangeText={setSenhaAtual}
           />
 
           <Text style={styles.label}>
@@ -72,6 +137,8 @@ export default function SegurancaScreen() {
             placeholder="Digite sua nova senha"
             placeholderTextColor="#7C8BA3"
             secureTextEntry
+            value={novaSenha}
+            onChangeText={setNovaSenha}
           />
 
           <Text style={styles.label}>
@@ -83,6 +150,8 @@ export default function SegurancaScreen() {
             placeholder="Confirme sua nova senha"
             placeholderTextColor="#7C8BA3"
             secureTextEntry
+            value={confirmarSenha}
+            onChangeText={setConfirmarSenha}
           />
 
           <View style={styles.requisitos}>
@@ -173,10 +242,12 @@ export default function SegurancaScreen() {
         </View>
 
         <TouchableOpacity
-          style={styles.botao}
+          style={[styles.botao, salvando && styles.botaoDesabilitado]}
+          onPress={atualizarSenha}
+          disabled={salvando}
         >
           <Text style={styles.botaoTexto}>
-            ATUALIZAR SENHA
+            {salvando ? 'ATUALIZANDO...' : 'ATUALIZAR SENHA'}
           </Text>
         </TouchableOpacity>
 
@@ -295,6 +366,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 18,
     marginBottom: 30,
+  },
+
+  botaoDesabilitado: {
+    opacity: 0.6,
   },
 
   botaoTexto: {

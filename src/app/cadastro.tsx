@@ -3,6 +3,9 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -17,11 +20,11 @@ export default function CadastroScreen() {
   const [cpf, setCpf] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
-  const [codigoIndicacao, setCodigoIndicacao] =
-  useState('');
+  const [codigoIndicacao, setCodigoIndicacao] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [aceitouTermos, setAceitouTermos] = useState(false);
+  const [carregando, setCarregando] = useState(false);
 
   const validarCPF = (cpf: string) => {
     cpf = cpf.replace(/\D/g, '');
@@ -61,12 +64,13 @@ export default function CadastroScreen() {
 
     return true;
   };
-const validarSenha = (senha: string) => {
-  const regex =
-    /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_\-])[A-Za-z\d@$!%*?&.#_\-]{8,}$/;
 
-  return regex.test(senha);
-};
+  const validarSenha = (senha: string) => {
+    const regex =
+      /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_\-])[A-Za-z\d@$!%*?&.#_\-]{8,}$/;
+    return regex.test(senha);
+  };
+
   const cadastrar = async () => {
     try {
       if (!aceitouTermos) {
@@ -85,18 +89,12 @@ const validarSenha = (senha: string) => {
         !senha ||
         !confirmarSenha
       ) {
-        Alert.alert(
-          'Erro',
-          'Preencha todos os campos.'
-        );
+        Alert.alert('Erro', 'Preencha todos os campos.');
         return;
       }
 
       if (!validarCPF(cpf)) {
-        Alert.alert(
-          'CPF inválido',
-          'Informe um CPF válido.'
-        );
+        Alert.alert('CPF inválido', 'Informe um CPF válido.');
         return;
       }
 
@@ -113,12 +111,11 @@ const validarSenha = (senha: string) => {
       }
 
       if (senha !== confirmarSenha) {
-        Alert.alert(
-          'Erro',
-          'As senhas não conferem.'
-        );
+        Alert.alert('Erro', 'As senhas não conferem.');
         return;
       }
+
+      setCarregando(true);
 
       const resultado = await api.post(
         '/auth/cadastro',
@@ -138,148 +135,159 @@ const validarSenha = (senha: string) => {
       router.replace('/principal');
 
     } catch (erro: any) {
-      Alert.alert(
-        'Erro',
-        erro?.message || 'Erro inesperado'
-      );
+      Alert.alert('Erro', erro?.message || 'Erro inesperado');
+    } finally {
+      setCarregando(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-
-      <TouchableOpacity
-        style={styles.voltarButton}
-        onPress={() => router.back()}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <Ionicons
-          name="arrow-back"
-          size={28}
-          color="#FFF"
+
+        <TouchableOpacity
+          style={styles.voltarButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons
+            name="arrow-back"
+            size={28}
+            color="#FFF"
+          />
+        </TouchableOpacity>
+
+        <Text style={styles.title}>Cadastro</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Nome Completo"
+          placeholderTextColor="#999"
+          value={nome}
+          onChangeText={setNome}
         />
-      </TouchableOpacity>
 
-      <Text style={styles.title}>Cadastro</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="CPF"
+          placeholderTextColor="#999"
+          keyboardType="numeric"
+          value={cpf}
+          onChangeText={setCpf}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Nome Completo"
-        placeholderTextColor="#999"
-        value={nome}
-        onChangeText={setNome}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="E-mail"
+          placeholderTextColor="#999"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="CPF"
-        placeholderTextColor="#999"
-        keyboardType="numeric"
-        value={cpf}
-        onChangeText={setCpf}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Telefone"
+          placeholderTextColor="#999"
+          keyboardType="phone-pad"
+          value={telefone}
+          onChangeText={setTelefone}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="E-mail"
-        placeholderTextColor="#999"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Código de indicação (opcional)"
+          placeholderTextColor="#999"
+          autoCapitalize="characters"
+          value={codigoIndicacao}
+          onChangeText={setCodigoIndicacao}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Telefone"
-        placeholderTextColor="#999"
-        keyboardType="phone-pad"
-        value={telefone}
-        onChangeText={setTelefone}
-      />
-<TextInput
-  style={styles.input}
-  placeholder="Código de indicação (opcional)"
-  placeholderTextColor="#999"
-  autoCapitalize="characters"
-  value={codigoIndicacao}
-  onChangeText={setCodigoIndicacao}
-/>
+        <TextInput
+          style={styles.input}
+          placeholder="Senha"
+          placeholderTextColor="#999"
+          secureTextEntry
+          value={senha}
+          onChangeText={setSenha}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        placeholderTextColor="#999"
-        secureTextEntry
-        value={senha}
-        onChangeText={setSenha}
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Confirmar Senha"
+          placeholderTextColor="#999"
+          secureTextEntry
+          value={confirmarSenha}
+          onChangeText={setConfirmarSenha}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Confirmar Senha"
-        placeholderTextColor="#999"
-        secureTextEntry
-        value={confirmarSenha}
-        onChangeText={setConfirmarSenha}
-      />
-<Text style={styles.regraSenha}>
-  A senha deve conter:
-  {'\n'}• Mínimo de 8 caracteres
-  {'\n'}• 1 letra maiúscula
-  {'\n'}• 1 número
-  {'\n'}• 1 caractere especial
-</Text>
-      <TouchableOpacity
-        style={styles.checkboxContainer}
-        onPress={() =>
-          setAceitouTermos(!aceitouTermos)
-        }
-      >
-        <View
+        <Text style={styles.regraSenha}>
+          A senha deve conter:
+          {'\n'}• Mínimo de 8 caracteres
+          {'\n'}• 1 letra maiúscula
+          {'\n'}• 1 número
+          {'\n'}• 1 caractere especial
+        </Text>
+
+        <TouchableOpacity
+          style={styles.checkboxContainer}
+          onPress={() => setAceitouTermos(!aceitouTermos)}
+        >
+          <View
+            style={[
+              styles.checkbox,
+              aceitouTermos && styles.checkboxChecked,
+            ]}
+          />
+
+          <Text style={styles.checkboxText}>
+            Li e aceito os Termos de Uso e Política de Privacidade
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={cadastrar}
           style={[
-            styles.checkbox,
-            aceitouTermos &&
-              styles.checkboxChecked,
+            styles.button,
+            {
+              backgroundColor:
+                aceitouTermos && !carregando
+                  ? '#F5B800'
+                  : '#666666',
+            },
           ]}
-        />
+          disabled={!aceitouTermos || carregando}
+        >
+          <Text style={styles.buttonText}>
+            {carregando ? 'CRIANDO CONTA...' : 'CRIAR CONTA'}
+          </Text>
+        </TouchableOpacity>
 
-        <Text style={styles.checkboxText}>
-          Li e aceito os Termos de Uso e Política de Privacidade
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={cadastrar}
-        style={[
-          styles.button,
-          {
-            backgroundColor:
-              aceitouTermos
-                ? '#F5B800'
-                : '#666666',
-          },
-        ]}
-        disabled={!aceitouTermos}
-      >
-        <Text style={styles.buttonText}>
-          CRIAR CONTA
-        </Text>
-      </TouchableOpacity>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: '#031B4E',
     justifyContent: 'center',
     padding: 25,
+    paddingTop: 80,
+    paddingBottom: 40,
   },
 
   voltarButton: {
     position: 'absolute',
-    top: 50,
+    top: 40,
     left: 20,
     zIndex: 10,
   },
@@ -299,7 +307,6 @@ const styles = StyleSheet.create({
     height: 55,
     marginBottom: 15,
     fontSize: 16,
-    color: '#000000',
   },
 
   checkboxContainer: {
@@ -334,16 +341,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
- buttonText: {
-  color: '#02153D',
-  fontWeight: 'bold',
-  fontSize: 18,
-},
+  buttonText: {
+    color: '#02153D',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
 
-regraSenha: {
-  color: '#FFFFFF',
-  fontSize: 13,
-  marginBottom: 15,
-  lineHeight: 20,
-},
+  regraSenha: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    marginBottom: 15,
+    lineHeight: 20,
+  },
 });

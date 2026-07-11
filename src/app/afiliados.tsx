@@ -1,3 +1,4 @@
+﻿import { logger } from '../lib/logger';
 import {
   ScrollView,
   Share,
@@ -51,7 +52,7 @@ export default function AfiliadosScreen() {
     );
 
   } catch (erro) {
-    console.log(erro);
+    logger.log(erro);
   }
 };
 
@@ -72,7 +73,7 @@ useEffect(() => {
       });
 
     } catch (erro) {
-      console.log(erro);
+      logger.log(erro);
     }
   };
 
@@ -160,7 +161,7 @@ useEffect(() => {
           <View style={styles.linha}>
             <Text style={styles.azul}>●</Text>
             <Text style={styles.plano}>
-              Básico
+              Premium
             </Text>
             <Text style={styles.percentual}>
               10%
@@ -170,20 +171,10 @@ useEffect(() => {
           <View style={styles.linha}>
             <Text style={styles.amarelo}>●</Text>
             <Text style={styles.plano}>
-              Plus
+              Ouro Anual
             </Text>
             <Text style={styles.percentual}>
-              15%
-            </Text>
-          </View>
-
-          <View style={styles.linha}>
-            <Text style={styles.vermelho}>●</Text>
-            <Text style={styles.plano}>
-              Premium
-            </Text>
-            <Text style={styles.percentual}>
-              20%
+              10%
             </Text>
           </View>
 
@@ -334,11 +325,6 @@ const styles = StyleSheet.create({
     fontSize: 26,
   },
 
-  vermelho: {
-    color: '#FF3B30',
-    fontSize: 26,
-  },
-
   linkBox: {
     borderWidth: 1,
     borderColor: '#14396E',
@@ -371,3 +357,4 @@ const styles = StyleSheet.create({
   },
 
 });
+

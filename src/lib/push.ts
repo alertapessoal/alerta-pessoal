@@ -1,3 +1,4 @@
+﻿import { logger } from './logger';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
@@ -34,7 +35,7 @@ export async function registrarPushToken() {
 
   if (!Device.isDevice) {
 
-    console.log(
+    logger.log(
       'Push notifications exigem um dispositivo físico.'
     );
 
@@ -98,7 +99,7 @@ export async function registrarPushToken() {
 
   if (statusFinal !== 'granted') {
 
-    console.log(
+    logger.log(
       'Permissão de notificação não concedida.'
     );
 
@@ -120,7 +121,7 @@ export async function registrarPushToken() {
 
   if (!projectId) {
 
-    console.log(
+    logger.log(
 
       'projectId não encontrado em app.json/app.config (extra.eas.projectId). ' +
 
@@ -153,7 +154,7 @@ export async function registrarPushToken() {
 
   } catch (erro) {
 
-    console.log(
+    logger.log(
 
       'Erro ao registrar push token:',
 
@@ -192,3 +193,4 @@ export function configurarListenerNotificacao(
   return () => subscription.remove();
 
 }
+

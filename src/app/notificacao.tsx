@@ -1,4 +1,7 @@
+﻿import { logger } from '../lib/logger';
+import { useEffect, useState } from 'react';
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Switch,
@@ -10,8 +13,55 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { api } from '../lib/api';
 
 export default function NotificacoesScreen() {
+  const [push, setPush] = useState(true);
+  const [sonora, setSonora] = useState(true);
+  const [vibracao, setVibracao] = useState(true);
+  const [salvando, setSalvando] = useState(false);
+
+  useEffect(() => {
+    carregarConfiguracoes();
+  }, []);
+
+  async function carregarConfiguracoes() {
+    try {
+      const data = await api.get('/usuario/notificacoes');
+      if (data) {
+        setPush(data.push ?? true);
+        setSonora(data.sonora ?? true);
+        setVibracao(data.vibracao ?? true);
+      }
+    } catch (erro) {
+      // Se não conseguir carregar, mantém os valores padrão
+      logger.log(erro);
+    }
+  }
+
+  async function salvarConfiguracoes() {
+    try {
+      setSalvando(true);
+
+      await api.post('/usuario/notificacoes', {
+        push,
+        sonora,
+        vibracao,
+      });
+
+      Alert.alert('Sucesso', 'Configurações salvas com sucesso!');
+
+    } catch (erro: any) {
+      const mensagem =
+        erro?.response?.data?.erro ||
+        erro?.message ||
+        'Erro ao salvar configurações. Tente novamente.';
+      Alert.alert('Erro', mensagem);
+    } finally {
+      setSalvando(false);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.container}>
 
@@ -55,7 +105,10 @@ export default function NotificacoesScreen() {
               </Text>
             </View>
 
-            <Switch value={true} />
+            <Switch
+              value={push}
+              onValueChange={setPush}
+            />
           </View>
 
           <View style={styles.item}>
@@ -68,7 +121,10 @@ export default function NotificacoesScreen() {
               </Text>
             </View>
 
-            <Switch value={true} />
+            <Switch
+              value={sonora}
+              onValueChange={setSonora}
+            />
           </View>
 
           <View style={styles.item}>
@@ -81,7 +137,10 @@ export default function NotificacoesScreen() {
               </Text>
             </View>
 
-            <Switch value={true} />
+            <Switch
+              value={vibracao}
+              onValueChange={setVibracao}
+            />
           </View>
 
         </View>
@@ -110,9 +169,13 @@ export default function NotificacoesScreen() {
 
         </View>
 
-        <TouchableOpacity style={styles.botao}>
+        <TouchableOpacity
+          style={[styles.botao, salvando && styles.botaoDesabilitado]}
+          onPress={salvarConfiguracoes}
+          disabled={salvando}
+        >
           <Text style={styles.botaoTexto}>
-            SALVAR CONFIGURAÇÕES
+            {salvando ? 'SALVANDO...' : 'SALVAR CONFIGURAÇÕES'}
           </Text>
         </TouchableOpacity>
 
@@ -198,25 +261,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#39D353',
   },
 
-  opcao: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 20,
-  },
-
-  opcaoTexto: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-
   botao: {
     backgroundColor: '#F5B800',
     borderRadius: 15,
     padding: 18,
     marginTop: 10,
     marginBottom: 30,
+  },
+
+  botaoDesabilitado: {
+    opacity: 0.6,
   },
 
   botaoTexto: {
@@ -227,3 +281,4 @@ const styles = StyleSheet.create({
   },
 
 });
+

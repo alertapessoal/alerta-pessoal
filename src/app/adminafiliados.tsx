@@ -1,3 +1,4 @@
+﻿import { logger } from '../lib/logger';
 import {
     ScrollView,
     StyleSheet,
@@ -36,7 +37,7 @@ export default function AdminAfiliadosScreen() {
           );
 
       if (error) {
-        console.log(error);
+        logger.log(error);
         return;
       }
 
@@ -71,7 +72,7 @@ export default function AdminAfiliadosScreen() {
       );
 
     } catch (erro) {
-      console.log(erro);
+      logger.log(erro);
     }
   }
 
