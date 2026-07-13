@@ -43,6 +43,7 @@ jobs:
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           CI: "1"
+          EXPO_PUBLIC_API_URL: "https://alerta-api-aw11.onrender.com"
 
       - name: Build APK com Gradle
         working-directory: android
