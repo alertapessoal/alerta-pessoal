@@ -21,12 +21,16 @@ jobs:
           java-version: '17'
 
       - name: Instalar dependências
-        run: npm install
+        run: npm install --legacy-peer-deps
+
+      - name: Garantir expo-secure-store instalado
+        run: npm install expo-secure-store --legacy-peer-deps
 
       - name: Expo Prebuild (gerar projeto Android nativo)
-        run: npx expo prebuild --platform android --clean --non-interactive
+        run: npx expo prebuild --platform android --clean
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          CI: "1"
 
       - name: Build APK com Gradle
         working-directory: android
