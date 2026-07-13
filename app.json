@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "alerta-pessoal",
+    "name": "Alerta Pessoal",
     "slug": "alerta-pessoal",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,16 +8,18 @@
     "scheme": "alertapessoal",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "bundleIdentifier": "com.alertapessoal.app",
+      "icon": "./assets/images/icon.png",
+      "supportsTablet": false
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#031B4E",
+        "foregroundImage": "./assets/images/icon.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.alertapessoal.app",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -28,11 +30,18 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#031B4E",
           "android": {
             "image": "./assets/images/splash-icon.png",
-            "imageWidth": 76
+            "imageWidth": 200
           }
+        }
+      ],
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "sounds": ["./assets/sounds/alerta.wav"]
         }
       ]
     ],
