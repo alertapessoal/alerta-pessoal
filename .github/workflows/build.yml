@@ -28,8 +28,11 @@ jobs:
       - name: Instalar EAS CLI
         run: npm install -g eas-cli
 
-      - name: Debug expo config
+      - name: Debug expo config (global)
         run: npx expo config --json 2>&1 || true
+
+      - name: Debug expo config (local - igual ao EAS)
+        run: node node_modules/expo/bin/cli config --json 2>&1 || true
 
       - name: Build Android APK
         run: eas build --platform android --profile preview --local --non-interactive
